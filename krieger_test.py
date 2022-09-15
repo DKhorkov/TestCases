@@ -7,47 +7,65 @@ import statistics
 import shutil
 
 
-# Обработка полученных в качестве входных данных путей запуска файла и сохранения результатов:
-input_file_dir = sys.argv[1]
-outputdir = sys.argv[2]
+class KriegerTest:
 
-# Запуск кригера:
-os.startfile(input_file_dir)
-time.sleep(20)
+    def __init__(self, input_file_dir, outputdir):
+        self.input_file_dir = input_file_dir
+        self.outputdir = outputdir
 
-# Снятие скриншота о загрузке игры на сцену и запуск снятия статистики fps:
-start_screen = pyautogui.screenshot(f'{outputdir}\\starting_screenshot.jpg')
-time.sleep(5)
-keyboard.press("Enter")
-time.sleep(1)
-keyboard.press("Enter")
-os.startfile('fps.exe')
+    def _start_krieger(self):
+        os.startfile(self.input_file_dir)
+        time.sleep(20)
 
-# Движение вперед:
-for i in range(100):
-    keyboard.press("w")
-time.sleep(10)
+    def _make_first_screen_and_run_stats(self):
+        pyautogui.screenshot(f'{self.outputdir}\\starting_screenshot.jpg')
+        time.sleep(5)
+        keyboard.press("Enter")
+        time.sleep(1)
+        keyboard.press("Enter")
+        time.sleep(1)
+        os.startfile('fps.exe')
 
-# Завершение снятия статистики fps и создание завершающего скриншота:
-os.system("TASKKILL /F /IM fps.exe")
-end_screen = pyautogui.screenshot(f'{outputdir}\\ending_screenshot.jpg')
-time.sleep(5)
+    @staticmethod
+    def _walking():
+        for i in range(100):
+            keyboard.press("w")
+        time.sleep(10)
 
-# Закрытие кригера:
-os.system("TASKKILL /F /IM krieger.exe")
+    def _stop_stats_and_create_second_screen(self):
+        os.system("TASKKILL /F /IM fps.exe")
+        pyautogui.screenshot(f'{self.outputdir}\\ending_screenshot.jpg')
+        time.sleep(5)
 
-# Обработка результатов статистики fps и занесение результатов в указанный директорий:
-with open('stats.txt', "r") as f:
-    stats = f.read()
-shutil.copyfile('stats.txt', f'{outputdir}\\fps_stats.txt')
-lst = stats.strip('[')
-lst = lst.strip(']')
-lst = lst.split(',')
-lst2 = []
-for element in lst:
-    float_elem = float(element)
-    lst2.append(float_elem)
-avg = statistics.mean(lst2)
-with open(os.path.join(outputdir, 'average_fps.txt'), "w") as f:
-    f.write(str(avg))
-print('Script executed')
+    @staticmethod
+    def _close_krieger():
+        os.system("TASKKILL /F /IM krieger.exe")
+
+    def _get_stats_and_average_fps(self):
+        shutil.copyfile('stats.txt', f'{self.outputdir}\\fps_stats.txt')
+        with open('stats.txt', "r") as f:
+            stats = f.read()
+        lst = stats.strip('[')
+        lst = lst.strip(']')
+        lst = lst.split(',')
+        lst2 = []
+        for element in lst:
+            float_elem = float(element)
+            lst2.append(float_elem)
+        avg = statistics.mean(lst2)
+        with open(os.path.join(self.outputdir, 'average_fps.txt'), "w") as f:
+            f.write(str(avg))
+        print('Script executed')
+
+    def run_script(self):
+        self._start_krieger()
+        self._make_first_screen_and_run_stats()
+        self._walking()
+        self._stop_stats_and_create_second_screen()
+        self._close_krieger()
+        self._get_stats_and_average_fps()
+
+
+if __name__ == "__main__":
+    krieger_test = KriegerTest(sys.argv[1], sys.argv[2])
+    krieger_test.run_script()
